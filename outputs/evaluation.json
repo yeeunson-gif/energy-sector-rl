@@ -1,0 +1,26 @@
+{
+  "random": {
+    "episodes": 50,
+    "mean_reward": -11.0209459436,
+    "std_reward": 1.1056456788502143,
+    "mean_position": 0.5016729559748427
+  },
+  "conservative_rule": {
+    "episodes": 50,
+    "mean_reward": -6.018339995800002,
+    "std_reward": 0.42600235907889183,
+    "mean_position": 0.4999685534591195
+  },
+  "risk_neutral_rule": {
+    "episodes": 50,
+    "mean_reward": -6.6601604000000005,
+    "std_reward": 0.4182451518194862,
+    "mean_position": 0.450177358490566
+  },
+  "q_learning": {
+    "episodes": 50,
+    "mean_reward": 0.26337044460000003,
+    "std_reward": 0.09212548889783766,
+    "mean_position": 0.0421874213836478
+  }
+}

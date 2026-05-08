@@ -1,0 +1,1080 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Energy Sector Investment Analysis System</title>
+  <style>
+    :root {
+      --bg: #f6f7f2;
+      --ink: #17211b;
+      --muted: #657065;
+      --line: #d8ded3;
+      --panel: #ffffff;
+      --green: #1f8f5f;
+      --blue: #2870b8;
+      --amber: #c47a12;
+      --red: #c43d32;
+      --shadow: 0 10px 24px rgba(33,45,36,.10);
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Arial,"Noto Sans KR",sans-serif; color:var(--ink); background:var(--bg); }
+
+    /* ── 헤더 ── */
+    header { padding:28px 32px 20px; border-bottom:1px solid var(--line); background:#fff; }
+    .header-top { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; }
+    .course-badge { flex:0 0 auto; padding:8px 12px; border:1px solid var(--line); border-radius:999px; background:#f8faf6; color:#2f5f47; font-size:14px; font-weight:700; white-space:nowrap; }
+    h1 { margin:0 0 8px; font-size:30px; letter-spacing:0; }
+    .subtitle { max-width:980px; color:var(--muted); line-height:1.55; font-size:15px; }
+
+    /* ── 레이아웃 ── */
+    main { display:grid; grid-template-columns:320px 1fr; gap:20px; padding:20px; }
+    aside, section.panel { background:var(--panel); border:1px solid var(--line); border-radius:8px; box-shadow:var(--shadow); }
+    aside { padding:18px; align-self:start; position:sticky; top:16px; }
+    .content { display:grid; gap:20px; }
+    section.panel { padding:18px; }
+
+    /* ── 사이드바 폼 ── */
+    label { display:block; margin:14px 0 6px; font-size:13px; font-weight:700; color:#2e3b32; }
+    select, input { width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:6px; font-size:14px; background:#fff; color:var(--ink); }
+    .weights { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:10px; }
+    .weight { padding:10px; border:1px solid var(--line); border-radius:8px; background:#fafbf8; text-align:center; }
+    .weight strong { display:block; font-size:18px; }
+
+    /* ── 리스크 등급 기준 ── */
+    .risk-scale { margin-top:14px; padding:12px; border:1px solid var(--line); border-radius:8px; background:#f8faf6; }
+    .risk-scale-title { display:block; margin-bottom:8px; font-size:13px; font-weight:700; color:#2e3b32; }
+    .risk-scale-row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px; font-size:12px; color:#465248; }
+    .risk-scale-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+
+    /* ── 해석 주의 박스 ── */
+    .method-note { margin-top:10px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; background:#f8faf6; font-size:12px; color:var(--muted); line-height:1.55; }
+    .method-note strong { display:block; margin-bottom:4px; color:#2e3b32; font-size:13px; }
+
+    /* ── KPI 카드 ── */
+    .kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+    .kpi { border:1px solid var(--line); border-radius:8px; padding:14px; background:#fbfcfa; min-height:98px; }
+    .kpi span { display:block; color:var(--muted); font-size:12px; margin-bottom:8px; font-weight:700; }
+    .kpi strong { font-size:28px; }
+    .mini { color:var(--muted); font-size:12px; line-height:1.45; }
+
+    /* ── 배지 ── */
+    .badge { display:inline-flex; align-items:center; height:28px; padding:0 10px; border-radius:999px; color:#fff; font-weight:700; font-size:13px; }
+    .low    { background:var(--green); }
+    .medium { background:var(--blue); }
+    .medium-high { background:var(--amber); }
+    .high   { background:var(--red); }
+
+    /* ── 그리드 ── */
+    .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    h2 { margin:0 0 14px; font-size:18px; }
+
+    /* ── 바 차트 ── */
+    .bar-row { display:grid; grid-template-columns:100px 1fr 52px; align-items:center; gap:10px; margin:12px 0; font-size:13px; }
+    .bar-track { height:14px; border-radius:999px; background:#e8ece4; overflow:hidden; }
+    .bar { height:100%; border-radius:999px; width:0; transition:width 200ms ease; }
+    .bar.market { background:var(--blue); }
+    .bar.policy { background:var(--amber); }
+    .bar.macro  { background:var(--green); }
+    .bar.total  { background:var(--red); }
+
+    /* ── 모델 투명성 섹션 ── */
+    .notice { border:1px solid #e4d6aa; background:#fff9e8; color:#5b4718; border-radius:8px; padding:12px 14px; line-height:1.55; font-size:13px; margin-bottom:12px; }
+    .source-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+    .source-card { border:1px solid var(--line); border-radius:8px; background:#fbfcfa; padding:12px; line-height:1.55; font-size:13px; }
+    .source-card strong { display:block; margin-bottom:6px; }
+    .formula-box { background:#fbfcfa; border:1px solid var(--line); border-radius:8px; padding:12px; margin:12px 0; font-size:13px; line-height:1.65; }
+    .formula-box code { display:block; white-space:pre-wrap; color:#26312a; background:#fff; border:1px solid var(--line); border-radius:6px; padding:8px; margin-top:6px; font-family:monospace; font-size:12px; }
+    .source-list { margin:10px 0 0; padding-left:18px; color:var(--muted); line-height:1.6; font-size:13px; }
+    .data-note { margin-top:10px; padding:8px 12px; background:#f0f4ff; border:1px solid #c8d8f8; border-radius:6px; font-size:12px; color:#2a4080; }
+    .model-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    .model-card { border:1px solid var(--line); border-radius:8px; background:#fbfcfa; padding:14px; line-height:1.6; font-size:13px; }
+    .model-card strong { display:block; margin-bottom:6px; color:#243229; font-size:14px; }
+    .model-card code { display:block; margin-top:8px; padding:8px; border:1px solid var(--line); border-radius:6px; background:#fff; white-space:pre-wrap; font-family:monospace; font-size:12px; }
+    .weight-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:12px; }
+    .weight-card { border:1px solid var(--line); border-radius:8px; background:#fbfcfa; padding:12px; }
+    .weight-card span { display:block; color:var(--muted); font-size:12px; font-weight:700; margin-bottom:6px; }
+    .weight-card strong { font-size:24px; }
+    .stacked-weight { display:flex; height:18px; overflow:hidden; border-radius:999px; background:#e8ece4; margin-top:12px; border:1px solid var(--line); }
+    .stacked-weight div { height:100%; transition:width 220ms ease; }
+    .stacked-market { background:var(--blue); }
+    .stacked-policy { background:var(--amber); }
+    .stacked-macro { background:var(--green); }
+    .comparison-note { margin-top:12px; padding:12px 14px; border:1px solid var(--line); border-radius:8px; background:#f8faf6; line-height:1.6; font-size:13px; white-space:pre-line; }
+
+    /* ── LLM 해석 ── */
+    .explain { line-height:1.7; font-size:15px; color:#26312a; background:#f8faf6; border:1px solid var(--line); border-radius:8px; padding:14px; white-space:pre-line; }
+    .pill-list { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+    .pill { border:1px solid var(--line); border-radius:999px; padding:5px 8px; background:#fff; font-size:12px; color:#465248; }
+
+    /* ── 확률 게이지 ── */
+    .opinion-layout { display:grid; grid-template-columns:360px 1fr; gap:20px; align-items:start; }
+    .gauge-wrap { position:relative; min-height:230px; display:flex; justify-content:center; align-items:center; background:#fbfcfa; border:1px solid var(--line); border-radius:8px; padding:12px; }
+    .gauge-svg { width:100%; max-width:330px; height:210px; overflow:visible; }
+    .gauge-label { font-size:11px; fill:#657065; font-weight:700; }
+    .gauge-score { position:absolute; bottom:22px; text-align:center; width:100%; }
+    .gauge-score strong { display:block; font-size:28px; line-height:1.1; }
+    .gauge-score span { font-size:13px; color:var(--muted); font-weight:700; }
+    .needle { transform-origin:160px 160px; transition:transform 260ms ease; }
+    .opinion-card { border:1px solid var(--line); border-radius:8px; background:#f8faf6; padding:16px; line-height:1.7; white-space:pre-line; }
+    .opinion-top { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:10px; }
+    .opinion-badge { display:inline-flex; align-items:center; height:34px; padding:0 13px; border-radius:999px; color:#fff; font-weight:800; font-size:14px; }
+    .opinion-badge.prob-high   { background:var(--green); }
+    .opinion-badge.prob-mid    { background:var(--blue); }
+    .opinion-badge.prob-low    { background:var(--amber); }
+    .opinion-badge.prob-vlow   { background:var(--red); }
+    .opinion-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:12px; }
+    .opinion-metric { background:#fff; border:1px solid var(--line); border-radius:8px; padding:10px; }
+    .opinion-metric span { display:block; color:var(--muted); font-size:11px; font-weight:700; margin-bottom:4px; }
+    .opinion-metric strong { font-size:20px; }
+    .prob-note { margin-top:10px; font-size:12px; color:var(--muted); line-height:1.55; border-top:1px solid var(--line); padding-top:10px; }
+    .rl-action-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+    .rl-action-card { border:1px solid var(--line); border-radius:8px; background:#fbfcfa; padding:12px; }
+    .rl-action-card span { display:block; color:var(--muted); font-size:12px; font-weight:700; margin-bottom:6px; }
+    .rl-action-card strong { font-size:20px; }
+    .rl-note { margin-top:12px; padding:12px 14px; border:1px solid var(--line); border-radius:8px; background:#f8faf6; line-height:1.6; font-size:13px; white-space:pre-line; }
+
+    /* ── 전체 테이블 ── */
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    th, td { text-align:left; padding:10px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+    th { color:#3a463d; background:#f8faf6; position:sticky; top:0; }
+    .table-wrap { max-height:420px; overflow:auto; border:1px solid var(--line); border-radius:8px; }
+
+    /* ── 반응형 ── */
+    @media (max-width:980px) {
+      main { grid-template-columns:1fr; }
+      aside { position:static; }
+      .kpis, .grid-2, .opinion-layout, .source-grid, .model-grid, .weight-cards, .rl-action-grid { grid-template-columns:1fr; }
+      .header-top { flex-direction:column; }
+      .course-badge { align-self:flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+  <h1>Energy Sector Investment Analysis System<br>
+    <span style="font-size:18px;color:#657065">Integrated Dashboard — 40 Countries × 16 Energy Types</span>
+  </h1>
+  <div class="course-badge">[금융시장의 빅데이터 분석] 6조</div>
+  </div>
+  <div class="subtitle">
+    시장 데이터(CAPM), 정책/뉴스 키워드, 거시경제 지표를 통합해 국가별 에너지 산업 투자 리스크를 비교합니다.
+    본 HTML은 build_real_dashboard_data.py가 직접 수집한 real_dashboard_data.js 파일을 우선 적용합니다.
+    실제 데이터 파일(<code>real_dashboard_data.js</code>)을 제공하면 실제 값이 우선 적용됩니다.
+  </div>
+</header>
+
+<main>
+  <!-- ── 사이드바 ── -->
+  <aside>
+    <label for="country">국가</label>
+    <select id="country"></select>
+
+    <label for="energy">에너지 종류</label>
+    <select id="energy"></select>
+
+    <label for="region">지역 필터</label>
+    <select id="region"></select>
+
+    <label for="search">표 검색</label>
+    <input id="search" placeholder="국가 또는 에너지 검색">
+
+    <div class="weights" style="margin-top:14px">
+      <div class="weight"><span>Market</span><strong>40%</strong></div>
+      <div class="weight"><span>Policy</span><strong>30%</strong></div>
+      <div class="weight"><span>Macro</span><strong>30%</strong></div>
+    </div>
+
+    <!-- 리스크 등급 기준 (예은님) -->
+    <div class="risk-scale">
+      <span class="risk-scale-title">리스크 등급 기준 (0~100점)</span>
+      <div class="risk-scale-row">
+        <div class="risk-scale-dot" style="background:var(--green)"></div>
+        <span>Low</span><strong>35점 미만</strong>
+      </div>
+      <div class="risk-scale-row">
+        <div class="risk-scale-dot" style="background:var(--blue)"></div>
+        <span>Medium</span><strong>35 ~ 55점</strong>
+      </div>
+      <div class="risk-scale-row">
+        <div class="risk-scale-dot" style="background:var(--amber)"></div>
+        <span>Medium-High</span><strong>55 ~ 72점</strong>
+      </div>
+      <div class="risk-scale-row">
+        <div class="risk-scale-dot" style="background:var(--red)"></div>
+        <span>High</span><strong>72점 이상</strong>
+      </div>
+    </div>
+
+    <!-- 해석 주의 (예은님) -->
+    <div class="method-note">
+      <strong>해석 주의</strong>
+      실제 투자 권유가 아닌 수업용 분석 모델입니다.
+      점수화 계수는 서로 다른 지표를 0~100 범위로 비교 가능하게 만드는 정규화 규칙이며,
+      실증 분석으로 도출된 값이 아닙니다.
+    </div>
+
+    <!-- 데이터 소스 상태 (예은님) -->
+    <p class="mini" id="dataSourceNote" style="margin-top:10px"></p>
+  </aside>
+
+  <!-- ── 메인 콘텐츠 ── -->
+  <div class="content">
+
+    <!-- KPI 카드 (수람님 레이블 수정 반영) -->
+    <section class="panel">
+      <div class="kpis">
+        <div class="kpi">
+          <span>Country-specific Learning-based Risk Score</span>
+          <strong id="totalScore">-</strong>
+          <div id="riskBadge"></div>
+        </div>
+        <div class="kpi">
+          <span>Yahoo Finance CAPM Beta (β)</span>
+          <strong id="beta">-</strong>
+          <div class="mini">ETF와 SPY 월별 수익률 회귀로 계산한 실제 시장 민감도</div>
+        </div>
+        <div class="kpi">
+          <span>Pr(연간 수익률 &gt; 8%)</span>
+          <strong id="prob8disp">-</strong>
+          <div class="mini">정규분포 CDF 기반 시뮬레이션 추정 확률</div>
+        </div>
+        <div class="kpi">
+          <span>ETF Proxy</span>
+          <strong id="etf">-</strong>
+          <div class="mini">산업 대표 자산 (국가·에너지 유형 기준 매핑)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 리스크 구성 + 거시경제 지표 -->
+    <section class="panel">
+      <h2>Country-specific Learning-based Risk Weight Model</h2>
+      <div class="model-grid">
+        <div class="model-card">
+          <strong>Country-specific risk structure</strong>
+          The dashboard now uses country-specific weights rather than applying one fixed 40/30/30 rule to every country.
+          <code>w_market,c + w_policy,c + w_macro,c = 1</code>
+        </div>
+        <div class="model-card">
+          <strong>Country-specific Learning-based Risk Weight Model</strong>
+          The revised model assigns different Market, Policy, and Macro weights by country characteristics. The deterministic proxy weights always sum to 1.
+          <code>Country-specific Total Risk
+= w_market,c × Market Risk
++ w_policy,c × Policy Risk
++ w_macro,c × Macro Risk</code>
+        </div>
+      </div>
+      <div class="weight-cards">
+        <div class="weight-card"><span>Market Risk Weight</span><strong id="marketWeight">-</strong></div>
+        <div class="weight-card"><span>Policy Risk Weight</span><strong id="policyWeight">-</strong></div>
+        <div class="weight-card"><span>Macro Risk Weight</span><strong id="macroWeight">-</strong></div>
+      </div>
+      <div class="stacked-weight" aria-label="Country-specific risk weights">
+        <div id="marketWeightBar" class="stacked-market"></div>
+        <div id="policyWeightBar" class="stacked-policy"></div>
+        <div id="macroWeightBar" class="stacked-macro"></div>
+      </div>
+      <div class="comparison-note" id="weightInterpretation"></div>
+    </section>
+
+    <div class="grid-2">
+      <section class="panel">
+        <h2>리스크 구성</h2>
+        <div id="bars"></div>
+      </section>
+      <section class="panel">
+        <h2>거시경제 지표</h2>
+        <div id="macro"></div>
+      </section>
+    </div>
+
+    <!-- 모델 투명성 및 데이터 출처 (수람님 + 예은님 통합) -->
+    <section class="panel">
+      <h2>모델 투명성 및 데이터 출처</h2>
+
+      <div class="notice">
+        이 대시보드는 build_real_dashboard_data.py가 Yahoo Finance, World Bank, World Governance Indicators, GDELT API를 직접 호출해 생성한 실제 수집 데이터를 사용합니다.
+        현재 폴더의 real_dashboard_data.js가 연결되어 있으면 실제 수집 데이터가 우선 적용됩니다.
+        모든 수치는 투자 권유가 아닌 모델 설계 설명을 위한 시뮬레이션 결과입니다.
+      </div>
+
+      <div class="source-grid">
+        <div class="source-card">
+          <strong>Market Risk (40%)</strong>
+          <b>실제 목표:</b> yfinance로 ETF·SPY 월별 수익률을 수집해 CAPM 회귀로 β·α 산출.<br>
+          <b>현재 HTML:</b> wave(seed, month) 기반 가상 수익률 proxy — CAPM 계산 구조만 시연.<br>
+          <b>ETF 매핑:</b> TAN(태양), FAN(풍력), ICLN(재생), XLE(화석), URA(핵), LIT(배터리) 등
+        </div>
+        <div class="source-card">
+          <strong>Policy Risk (30%)</strong>
+          <b>실제 목표:</b> GDELT 2.1 DOC API에서 regulation, tax, ban, subsidy, tariff, permit 등 키워드 집계.<br>
+          <b>현재 데이터:</b> GDELT 기반 정책/뉴스 키워드와 에너지 유형별 정책 노출도 반영.<br>
+          <b>키워드 가중치:</b> nationalization(1.2) &gt; ban/sanction(1.15) &gt; regulation(1.0) 순
+        </div>
+        <div class="source-card">
+          <strong>Macro Risk (30%)</strong>
+          <b>실제 목표:</b> World Bank API — NY.GDP.MKTP.KD.ZG, FP.CPI.TOTL.ZG, GC.DOD.TOTL.GD.ZS.<br>
+          <b>현재 HTML:</b> 40개국 예시 거시지표 하드코딩 (IMF WEO 2024 기준 추정치).<br>
+          <b>정규화:</b> GDP는 반전 처리(낮을수록 리스크↑), 인플레·부채는 정방향
+        </div>
+      </div>
+
+      <div class="formula-box">
+        <strong>통합 리스크 공식</strong>
+        <code>Total Risk  =  0.40 × Market Risk  +  0.30 × Policy Risk  +  0.30 × Macro Risk
+
+확률 추정 (국가별 데이터 기반 proxy)
+E[R]과 σ는 GDP 성장률, 인플레이션, 부채비율, 환율 변동성, WGI 안정성, ETF 변동성을 이용해 행별로 추정
+Pr(R > target)  =  Φ((E[R] − target) / σ)   [정규분포 CDF]</code>
+        <div style="margin-top:8px;font-size:12px;color:var(--muted)">
+          국가별 risk weights는 GDP, 인플레이션, 부채, FX, WGI 안정성, ETF beta/volatility, GDELT 정책위험을 이용해 행별로 추정합니다.
+        </div>
+      </div>
+
+      <ul class="source-list">
+        <li>World Bank API: NY.GDP.MKTP.KD.ZG (GDP 성장률), FP.CPI.TOTL.ZG (인플레이션), GC.DOD.TOTL.GD.ZS (국가부채)</li>
+        <li>World Governance Indicators: 정치 안정성 지수</li>
+        <li>Yahoo Finance (yfinance): ETF 및 SPY 가격, CAPM α/β 회귀</li>
+        <li>GDELT 2.1 DOC API: 정책·뉴스 키워드 집계</li>
+        <li>해석 문단은 real_dashboard_data.js에 포함된 LLM API 호출 결과를 표시합니다. API 키가 없는 상태에서는 해석 문단이 생성되지 않습니다.</li>
+      </ul>
+
+      <div class="formula-box">
+        <strong>Country-specific Learning-based Risk Weight Model</strong>
+        The dashboard uses country-specific risk weights. Each country’s macroeconomic stability, policy environment, governance quality, and market volatility determine the relative importance of Market Risk, Policy Risk, and Macro Risk. The resulting score therefore reflects not only the level of each risk component but also the country-specific sensitivity to each component.
+        <code>Country-specific Total Risk
+= w_market,c × Market Risk
++ w_policy,c × Policy Risk
++ w_macro,c × Macro Risk</code>
+      </div>
+
+      <div class="formula-box">
+        <strong>Future learning extension</strong>
+        In a fully trained version, the country-specific weights could be learned using supervised machine learning. External benchmark variables such as World Bank indicators, IMF-style country risk proxies, World Governance Indicators, GDELT-based policy uncertainty measures, and realized energy investment performance could serve as target values. The current dashboard implements a deterministic proxy version of this learning structure for academic demonstration.
+      </div>
+
+      <div class="data-note" id="dataSourceNote2"></div>
+    </section>
+
+    <!-- LLM 투자 해석 -->
+    <section class="panel">
+      <h2>LLM 기반 투자 리스크 해석</h2>
+      <div class="explain" id="explain"></div>
+      <div class="pill-list" id="keywords"></div>
+    </section>
+
+    <!-- 확률 기반 투자 전망 (수람님 게이지 + 메트릭 확장) -->
+    <section class="panel">
+      <h2>확률 기반 투자 전망</h2>
+      <div class="opinion-layout">
+        <div class="gauge-wrap">
+          <svg class="gauge-svg" viewBox="0 0 320 220" aria-label="목표수익률 달성 확률 게이지">
+            <!-- 배경 트랙 -->
+            <path d="M 40 160 A 120 120 0 0 1 280 160" fill="none" stroke="#e8ece4" stroke-width="18" stroke-linecap="round"/>
+            <!-- 구간별 색상 -->
+            <path d="M 40 160 A 120 120 0 0 1 83 68"  fill="none" stroke="#c43d32" stroke-width="18" stroke-linecap="round"/>
+            <path d="M 83 68  A 120 120 0 0 1 136 43" fill="none" stroke="#c47a12" stroke-width="18" stroke-linecap="round"/>
+            <path d="M 136 43 A 120 120 0 0 1 184 43" fill="none" stroke="#657065" stroke-width="18" stroke-linecap="round"/>
+            <path d="M 184 43 A 120 120 0 0 1 237 68" fill="none" stroke="#2870b8" stroke-width="18" stroke-linecap="round"/>
+            <path d="M 237 68 A 120 120 0 0 1 280 160" fill="none" stroke="#1f8f5f" stroke-width="18" stroke-linecap="round"/>
+            <!-- 확률 % 레이블 -->
+            <text x="32"  y="178" class="gauge-label">0%</text>
+            <text x="67"  y="52"  class="gauge-label">25%</text>
+            <text x="160" y="26"  text-anchor="middle" class="gauge-label">50%</text>
+            <text x="253" y="52"  text-anchor="end"    class="gauge-label">75%</text>
+            <text x="288" y="178" text-anchor="end"    class="gauge-label">100%</text>
+            <!-- 바늘 -->
+            <g id="opinionNeedle" class="needle">
+              <line x1="160" y1="160" x2="160" y2="66" stroke="#17211b" stroke-width="5" stroke-linecap="round"/>
+              <circle cx="160" cy="160" r="9" fill="#17211b"/>
+              <circle cx="160" cy="160" r="4" fill="#fff"/>
+            </g>
+          </svg>
+          <div class="gauge-score">
+            <strong id="opinionLabel">-</strong>
+            <span id="opinionScore">Pr(연간 수익률 &gt; 8%)</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="opinion-card" id="opinionText"></div>
+          <!-- 메트릭 4개 (원준님 3개 → 확률 4개로 확장) -->
+          <div class="opinion-metrics">
+            <div class="opinion-metric">
+              <span>Pr(수익률 &gt; 0%)</span>
+              <strong id="probPositive">-</strong>
+            </div>
+            <div class="opinion-metric">
+              <span>Pr(수익률 &gt; 5%)</span>
+              <strong id="prob5disp">-</strong>
+            </div>
+            <div class="opinion-metric">
+              <span>Pr(수익률 &gt; 8%)</span>
+              <strong id="prob8disp2">-</strong>
+            </div>
+            <div class="opinion-metric">
+              <span>손실 가능성</span>
+              <strong id="downsideDisp">-</strong>
+            </div>
+          </div>
+          <div class="prob-note">
+            확률값은 정규분포 CDF 기반 시뮬레이션 추정치입니다. 실제 가격 예측 모형이 아니며,
+            Proposal의 Market·Policy·Macro 통합 구조를 직관적으로 설명하기 위한 proxy입니다.
+            확률 계수는 국가별 GDP 성장률, 인플레이션, 부채비율, 환율 변동성, WGI 안정성, Yahoo Finance ETF 변동성을 이용해 행별로 추정한 proxy 값입니다.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 전체 국가 × 에너지 테이블 (Pr>8% 컬럼 포함) -->
+    <section class="panel">
+      <h2>전체 국가 × 에너지 분석 결과</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>국가</th>
+              <th>지역</th>
+              <th>에너지</th>
+              <th>총점</th>
+              <th>등급</th>
+              <th>Market</th>
+              <th>Policy</th>
+              <th>Macro</th>
+              <th>Pr&gt;8%</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Country-specific Learning-based Risk Results</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Country</th>
+              <th>Region</th>
+              <th>Energy Type</th>
+              <th>Country-specific Risk Score</th>
+              <th>Market Weight</th>
+              <th>Policy Weight</th>
+              <th>Macro Weight</th>
+              <th>Main Risk Driver</th>
+              <th>Risk Level</th>
+            </tr>
+          </thead>
+          <tbody id="comparisonRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Reinforcement Learning Recommended Allocation</h2>
+      <div class="rl-action-grid">
+        <div class="rl-action-card"><span>RL Action</span><strong id="rlActionLabel">-</strong></div>
+        <div class="rl-action-card"><span>Position</span><strong id="rlPosition">-</strong></div>
+        <div class="rl-action-card"><span>Risk Score</span><strong id="rlRiskScore">-</strong></div>
+        <div class="rl-action-card"><span>Pr(Return &gt; 8%)</span><strong id="rlProb8">-</strong></div>
+      </div>
+      <div class="rl-note" id="rlExplanation"></div>
+    </section>
+
+  </div><!-- /.content -->
+</main>
+
+<script src="real_dashboard_data.js"></script>
+<script src="rl_recommendations.js"></script>
+<script>
+/* ────────────────────────────────────────────────
+   데이터 정의
+──────────────────────────────────────────────── */
+const countries = [
+  ["United States","North America","Advanced",2.4,3.2,122,5.5,78],
+  ["Canada","North America","Advanced",1.7,2.8,106,4.9,82],
+  ["Mexico","Latin America","Emerging",2.1,4.7,54,9.8,58],
+  ["Brazil","Latin America","Emerging",2.8,4.1,84,11.2,55],
+  ["Chile","Latin America","Emerging",2.0,3.9,39,8.5,72],
+  ["Argentina","Latin America","Emerging",-1.6,92.0,89,28.0,34],
+  ["United Kingdom","Europe","Advanced",1.1,3.6,101,6.2,80],
+  ["Germany","Europe","Advanced",0.7,2.9,64,5.8,84],
+  ["France","Europe","Advanced",1.0,2.7,111,5.6,81],
+  ["Italy","Europe","Advanced",0.9,2.6,137,6.4,74],
+  ["Spain","Europe","Advanced",2.0,2.9,108,6.0,78],
+  ["Netherlands","Europe","Advanced",1.4,2.8,48,5.4,86],
+  ["Norway","Europe","Advanced",1.5,3.0,44,6.8,90],
+  ["Sweden","Europe","Advanced",1.3,2.5,35,5.9,88],
+  ["Poland","Europe","Emerging",3.0,4.4,53,7.4,66],
+  ["Turkiye","Europe/Middle East","Emerging",3.5,48.0,34,22.0,42],
+  ["Russia","Europe/Asia","Emerging",1.4,7.5,21,18.5,30],
+  ["China","Asia","Emerging",4.7,1.2,84,7.1,59],
+  ["Japan","Asia","Advanced",0.8,2.5,255,6.9,86],
+  ["South Korea","Asia","Advanced",2.2,2.8,54,7.0,83],
+  ["India","Asia","Emerging",6.5,5.1,82,8.8,61],
+  ["Indonesia","Asia","Emerging",5.0,3.3,39,9.2,57],
+  ["Vietnam","Asia","Emerging",6.0,3.8,37,8.1,56],
+  ["Thailand","Asia","Emerging",2.7,2.2,61,7.3,63],
+  ["Philippines","Asia","Emerging",5.8,4.2,60,8.7,53],
+  ["Malaysia","Asia","Emerging",4.4,2.8,65,7.9,64],
+  ["Singapore","Asia","Advanced",2.3,3.1,168,4.4,91],
+  ["Australia","Oceania","Advanced",2.0,3.4,50,6.7,85],
+  ["New Zealand","Oceania","Advanced",1.5,3.2,48,6.1,87],
+  ["Saudi Arabia","Middle East","Emerging",3.1,2.6,27,5.0,60],
+  ["United Arab Emirates","Middle East","Emerging",3.8,2.3,31,4.6,76],
+  ["Qatar","Middle East","Emerging",2.7,2.1,42,4.3,72],
+  ["Israel","Middle East","Advanced",2.6,3.0,61,8.9,69],
+  ["South Africa","Africa","Emerging",1.2,5.3,73,12.6,45],
+  ["Egypt","Africa","Emerging",4.0,24.0,96,21.0,40],
+  ["Nigeria","Africa","Emerging",3.0,26.0,46,24.0,32],
+  ["Kenya","Africa","Emerging",5.2,6.7,68,13.8,50],
+  ["Morocco","Africa","Emerging",3.3,5.0,71,8.2,57],
+  ["Ghana","Africa","Emerging",3.8,23.0,84,20.0,38],
+  ["Colombia","Latin America","Emerging",1.8,6.8,56,10.5,51]
+].map(d => ({country:d[0],region:d[1],development:d[2],gdp:d[3],inflation:d[4],debt:d[5],fx:d[6],stability:d[7]}));
+
+const energies = [
+  ["Solar PV","Renewable","TAN",.70,.74,.22,.93],
+  ["Onshore Wind","Renewable","FAN",.66,.70,.20,.91],
+  ["Offshore Wind","Renewable","FAN",.88,.80,.25,.92],
+  ["Hydropower","Renewable","ICLN",.82,.64,.18,.82],
+  ["Geothermal","Renewable","ICLN",.76,.60,.16,.88],
+  ["Biomass","Renewable","ICLN",.58,.58,.34,.72],
+  ["Nuclear","Low Carbon","URA",.94,.86,.36,.70],
+  ["Natural Gas","Fossil","XLE",.62,.52,.82,.42],
+  ["LNG","Fossil","XLE",.78,.58,.88,.44],
+  ["Oil","Fossil","XLE",.60,.50,.95,.28],
+  ["Coal","Fossil","KOL",.52,.82,.90,.12],
+  ["Green Hydrogen","Low Carbon","HDRO",.92,.88,.28,.89],
+  ["Battery Storage","Grid Tech","LIT",.74,.68,.42,.84],
+  ["Transmission Grid","Grid Tech","GRID",.86,.72,.25,.78],
+  ["Carbon Capture","Transition","KRBN",.80,.86,.48,.67],
+  ["Energy Efficiency","Demand Tech","PBD",.46,.48,.18,.86]
+].map(d => ({name:d[0],group:d[1],etf:d[2],capex:d[3],policy:d[4],commodity:d[5],esg:d[6]}));
+
+/* ────────────────────────────────────────────────
+   정책 키워드 사전
+──────────────────────────────────────────────── */
+const regionText = {
+  "North America":"government tax credit infrastructure plan carbon price permit",
+  "Latin America":"government regulation auction delay tariff permit",
+  "Europe":"carbon price regulation auction subsidy green bond streamlined permit",
+  "Europe/Middle East":"regulation tax tariff delay government permit",
+  "Europe/Asia":"government regulation tariff nationalization price cap",
+  "Asia":"government subsidy auction regulation permit delay",
+  "Oceania":"green bond infrastructure plan carbon price permit regulation",
+  "Middle East":"government infrastructure plan regulation price cap permit",
+  "Africa":"government regulation delay tariff permit subsidy cut"
+};
+const energyText = {
+  "Renewable":"subsidy auction tax credit streamlined permit",
+  "Low Carbon":"regulation government permit subsidy delay",
+  "Fossil":"carbon price regulation tax ban price cap",
+  "Grid Tech":"infrastructure plan permit regulation green bond",
+  "Transition":"carbon price regulation tax credit permit",
+  "Demand Tech":"subsidy tax credit infrastructure plan regulation"
+};
+const keywordWeights = {
+  "regulation":1,"tax":.85,"government":.45,"ban":1.15,"delay":.95,"permit":.70,
+  "subsidy cut":1,"tariff":.82,"price cap":.92,"nationalization":1.2,
+  "carbon price":.54,"auction":.42,
+  "subsidy":-.38,"tax credit":-.44,"feed-in tariff":-.36,
+  "streamlined permit":-.48,"green bond":-.22,"infrastructure plan":-.30
+};
+
+/* ────────────────────────────────────────────────
+   유틸리티
+──────────────────────────────────────────────── */
+const clamp = (v,lo=0,hi=100) => Math.max(lo,Math.min(hi,v));
+const label = s => s<35?"Low":s<55?"Medium":s<72?"Medium-High":"High";
+const labelClass = s => label(s).toLowerCase().replace(/-/g,"-");
+
+/* ────────────────────────────────────────────────
+   리스크 계산 함수
+──────────────────────────────────────────────── */
+function wave(sd,m) { return Math.sin((sd+3)*(m+1)*.17)+Math.cos((sd+7)*(m+1)*.11); }
+function seedOf(t)  { return [...t].reduce((a,c)=>a+c.charCodeAt(0),0); }
+
+function marketRisk(c,e) {
+  const sd = seedOf(c.country+e.name);
+  const market=[],asset=[];
+  const growth = c.gdp/1000;
+  const drag   = c.inflation/1000+c.fx/1600+c.debt/25000;
+  for (let m=0;m<36;m++) {
+    const mr = .006+.018*wave(sd,m)/2;
+    const betaBase = .72+e.capex*.45+e.commodity*.35;
+    const ar = growth-drag+betaBase*mr+e.commodity*.006+.012*wave(sd+19,m+5);
+    market.push(mr); asset.push(ar);
+  }
+  const mean = arr=>arr.reduce((a,b)=>a+b,0)/arr.length;
+  const mm=mean(market),am=mean(asset);
+  const cov = market.reduce((a,m,i)=>a+(m-mm)*(asset[i]-am),0);
+  const variance = market.reduce((a,m)=>a+(m-mm)**2,0);
+  const beta  = variance?cov/variance:0;
+  const alpha = am-beta*mm;
+  const stdev = Math.sqrt(asset.reduce((a,v)=>a+(v-am)**2,0)/(asset.length-1));
+  const vol   = stdev*Math.sqrt(12);
+  const score = clamp(22+beta*23+vol*165+e.commodity*22-alpha*650);
+  return {marketScore:+score.toFixed(2),alpha:+alpha.toFixed(5),beta:+beta.toFixed(3),volatility:+vol.toFixed(4)};
+}
+
+function policyRisk(c,e) {
+  const text = `${regionText[c.region]} ${energyText[e.group]}`;
+  let raw=0,matched=[];
+  Object.entries(keywordWeights).forEach(([k,w])=>{if(text.includes(k)){raw+=w;matched.push(k);}});
+  const score = clamp(38+raw*9+(100-c.stability)*.35+e.policy*28-e.esg*12);
+  return {policyScore:+score.toFixed(2),keywords:matched.slice(0,8).join(", ")};
+}
+
+function macroRisk(c) {
+  const growth = clamp((4.5-c.gdp)*7,-16,28);
+  const score  = clamp(18+growth+clamp(c.inflation*1.6,0,42)+clamp(c.debt*.18,0,38)+clamp(c.fx*1.35,0,36)-c.stability*.12);
+  return +score.toFixed(2);
+}
+
+/* ────────────────────────────────────────────────
+   확률 추정 (수람님) — 계수 설명 주석 포함
+──────────────────────────────────────────────── */
+function erf(x) {
+  const sign=x>=0?1:-1; x=Math.abs(x);
+  const a1=.254829592,a2=-.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=.3275911;
+  const t=1/(1+p*x);
+  const y=1-(((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x);
+  return sign*y;
+}
+function normalCdf(x) { return .5*(1+erf(x/Math.sqrt(2))); }
+
+function probabilityAboveTarget(r,target) {
+  // fallback only: real rows use probability estimates generated from country data in build_real_dashboard_data.py
+  // E[R] 계수 설명:
+  //   alpha*12 : 월별 alpha를 연율로 환산 (CAPM 시뮬레이션 기반)
+  //   gdp/100  : GDP 성장률 1% → 기대수익 0.01 기여 (간소화)
+  //   fallback data only: real rows use probabilities generated by build_real_dashboard_data.py
+  //   from country macro indicators and Yahoo Finance ETF volatility.
+  const expectedAnnualReturn = r.alpha*12 + r.gdp/100 + r.esg*0.035 - r.totalScore/100*0.045;
+  const annualVolatility     = Math.max(0.08, r.volatility + r.totalScore/220 + r.fx/500);
+  const z = (expectedAnnualReturn-target)/annualVolatility;
+  return clamp(normalCdf(z)*100,3,97);
+}
+
+/* ────────────────────────────────────────────────
+   통합 분석 함수
+──────────────────────────────────────────────── */
+function analyze(c,e) {
+  const m=marketRisk(c,e), p=policyRisk(c,e), macro=macroRisk(c);
+  const total   = +(m.marketScore*.4+p.policyScore*.3+macro*.3).toFixed(2);
+  const base    = {...c,energy:e.name,group:e.group,etf:e.etf,esg:e.esg,...m,...p,macroScore:macro,totalScore:total,riskLabel:label(total)};
+  const probPositive = +probabilityAboveTarget(base,0).toFixed(1);
+  const prob5        = +probabilityAboveTarget(base,.05).toFixed(1);
+  const prob8        = +probabilityAboveTarget(base,.08).toFixed(1);
+  const prob10       = +probabilityAboveTarget(base,.10).toFixed(1);
+  const downside     = +(100-probPositive).toFixed(1);
+  const confidence   = clamp(65+c.stability*.20-c.fx*.65-total*.18);
+  return {...base,probPositive,prob5,prob8,prob10,downsideProbability:downside,confidenceScore:+confidence.toFixed(1)};
+}
+
+/* ────────────────────────────────────────────────
+   fallback 해석 함수: 실제 데이터 행은 build script의 LLM 결과를 사용
+──────────────────────────────────────────────── */
+function explain(c,e,r) {
+  const riskItems=[["시장위험",r.marketScore],["정책위험",r.policyScore],["거시경제위험",r.macroScore]].sort((a,b)=>b[1]-a[1]);
+  const mainRisk=riskItems[0][0], secondRisk=riskItems[1][0];
+
+  let totalText="";
+  if(r.totalScore<35) totalText="전반적인 투자 리스크는 낮은 편입니다. 낮은 리스크는 안정성을 의미하지만, 반드시 높은 기대수익률을 보장하지는 않습니다.";
+  else if(r.totalScore<55) totalText="전반적인 투자 리스크는 중간 수준입니다. 성장성과 안정성이 공존하지만 특정 리스크가 악화되면 투자 매력도가 낮아질 수 있습니다.";
+  else if(r.totalScore<72) totalText="전반적인 투자 리스크는 다소 높은 편입니다. 투자 기회는 존재하지만 시장 변동성·정책 불확실성·거시경제 불안정성을 함께 고려해야 합니다.";
+  else totalText="전반적인 투자 리스크는 높은 편입니다. 단기 수익 기회가 있더라도 정책 변화·금융시장 충격·거시경제 불안이 투자 성과를 크게 훼손할 수 있습니다.";
+
+  let marketText="";
+  if(r.beta>1.2) marketText=`시장위험 측면에서 CAPM beta는 ${r.beta}입니다. beta가 1보다 높으므로 ${e.name} 관련 자산은 전체 시장보다 더 민감하게 움직일 가능성이 큽니다. 금리 상승·위험자산 회피·글로벌 증시 조정이 발생하면 가격 변동성이 확대될 수 있습니다.`;
+  else if(r.beta>=0.8) marketText=`시장위험 측면에서 CAPM beta는 ${r.beta}입니다. 이는 ${e.name} 투자가 전체 금융시장 흐름과 상당히 연동되지만, 시장보다 극단적으로 위험한 자산이라고 보기는 어렵다는 의미입니다.`;
+  else marketText=`시장위험 측면에서 CAPM beta는 ${r.beta}입니다. beta가 1보다 낮아 시장 민감도는 상대적으로 제한적입니다. 다만 에너지 인프라 투자는 금리와 정책 변화의 영향을 받기 때문에 시장위험을 완전히 낮다고 해석하기는 어렵습니다.`;
+
+  let policyText="";
+  if(r.policyScore>=65) policyText=`정책위험 점수는 ${r.policyScore}점으로 높은 편입니다. ${r.keywords}와 같은 키워드는 보조금·인허가·전력구매계약·탄소정책 변화가 투자 수익성에 직접 영향을 줄 수 있음을 보여줍니다.`;
+  else if(r.policyScore>=45) policyText=`정책위험 점수는 ${r.policyScore}점으로 중간 수준입니다. 정부 정책이 투자에 긍정적으로 작용할 가능성도 있지만, 보조금 축소·세제 혜택 변경·인허가 지연이 발생하면 리스크가 확대될 수 있습니다.`;
+  else policyText=`정책위험 점수는 ${r.policyScore}점으로 비교적 낮은 편입니다. 이는 제도적 안정성이나 정책 지원이 어느 정도 확보되어 있음을 의미하지만, 에너지 산업 특성상 규제 변화는 계속 모니터링해야 합니다.`;
+
+  let macroText="";
+  if(r.macroScore>=65) macroText=`거시경제위험 점수는 ${r.macroScore}점으로 높습니다. 인플레이션·국가부채·환율 변동성이 높을 경우 프로젝트 비용과 외국인 투자자의 환차손 위험이 커질 수 있습니다.`;
+  else if(r.macroScore>=45) macroText=`거시경제위험 점수는 ${r.macroScore}점으로 중간 수준입니다. GDP 성장률이 전력 수요 확대에는 긍정적일 수 있지만, 물가·금리·환율 상황에 따라 자금 조달 비용이 달라질 수 있습니다.`;
+  else macroText=`거시경제위험 점수는 ${r.macroScore}점으로 낮은 편입니다. 해당 국가의 거시경제 환경이 비교적 안정적이며, 장기 에너지 인프라 투자에 유리한 조건을 제공할 가능성이 있습니다.`;
+
+  const devText = c.development==="Advanced"
+    ?"선진국은 금융시장·제도·전력 인프라가 상대적으로 안정적이라는 장점이 있습니다. 그러나 인허가 지연·지역 주민 반대·보조금 조정·높은 인건비는 프로젝트 수익성을 제약할 수 있습니다."
+    :"개발도상국은 전력 수요 증가와 에너지 전환 잠재력이 크다는 장점이 있습니다. 반면 외화부채·환율 불안정·정책 일관성 부족·송전망 부족은 투자 리스크를 높이는 요인입니다.";
+
+  let finalText="";
+  if(mainRisk==="시장위험") finalText="따라서 이 투자는 금융시장 변동성에 더 민감한 유형입니다. 금리·글로벌 증시·위험자산 선호 변화가 핵심 모니터링 대상입니다.";
+  else if(mainRisk==="정책위험") finalText="따라서 이 투자는 정부 정책과 규제 환경에 크게 의존하는 유형입니다. 보조금·세제 혜택·전력망 접속·인허가 제도의 변화가 핵심 모니터링 대상입니다.";
+  else finalText="따라서 이 투자는 국가의 거시경제 안정성에 크게 좌우되는 유형입니다. 인플레이션·환율·국가부채·성장률 둔화 여부가 핵심 모니터링 대상입니다.";
+
+  return `${c.country}의 ${e.name} 투자는 총 리스크 점수 ${r.totalScore}점으로 ${r.riskLabel} 수준으로 평가됩니다. ${totalText}
+
+${marketText}
+
+${policyText}
+
+${macroText}
+
+${devText}
+
+종합하면, 현재 가장 큰 리스크 요인은 ${mainRisk}이며, 그 다음으로는 ${secondRisk}이 중요합니다. ${finalText}
+
+[Fallback only: real-data rows display LLM interpretation generated by the data build script.]`;
+}
+
+/* ────────────────────────────────────────────────
+   실제 데이터 주입 구조 (예은님)
+   real_dashboard_data.js 파일로 window.REAL_RESULTS 제공 시 자동 전환
+──────────────────────────────────────────────── */
+function normalizeRow(r) {
+  const stability  = +(r.stability  ?? r.policy_stability ?? 50);
+  const gdp        = +(r.gdp        ?? r.gdp_growth       ?? 0);
+  const inflation  = +(r.inflation  ?? 0);
+  const fx         = +(r.fx         ?? r.fx_volatility    ?? 0);
+  const debt       = +(r.debt       ?? r.debt_to_gdp      ?? 0);
+  const totalScore = +(r.totalScore ?? r.total_score      ?? 0);
+  const esg        = +(r.esg        ?? 0.7);
+  return {
+    ...r, gdp, inflation, fx, debt, stability, esg,
+    energy    : r.energy    ?? r.energy_type,
+    group     : r.group     ?? r.energy_group,
+    etf       : r.etf       ?? r.etf_proxy,
+    marketScore : +(r.marketScore ?? r.market_score ?? 0),
+    policyScore : +(r.policyScore ?? r.policy_score ?? 0),
+    macroScore  : +(r.macroScore  ?? r.macro_score  ?? 0),
+    totalScore,
+    riskLabel : r.riskLabel ?? r.risk_label ?? label(totalScore),
+    keywords  : r.keywords  ?? r.policy_keywords ?? "",
+    alpha     : +(r.alpha   ?? 0),
+    beta      : +(r.beta    ?? 0),
+    volatility: +(r.volatility ?? r.annualized_volatility ?? 0.15),
+    // 확률 재계산
+    probPositive      : +(r.probPositive ?? probabilityAboveTarget({...r,gdp,esg,totalScore,alpha:+(r.alpha??0),volatility:+(r.volatility??0.15),fx},0)).toFixed(1),
+    prob5             : +(r.prob5 ?? probabilityAboveTarget({...r,gdp,esg,totalScore,alpha:+(r.alpha??0),volatility:+(r.volatility??0.15),fx},.05)).toFixed(1),
+    prob8             : +(r.prob8 ?? probabilityAboveTarget({...r,gdp,esg,totalScore,alpha:+(r.alpha??0),volatility:+(r.volatility??0.15),fx},.08)).toFixed(1),
+    downsideProbability: +(r.downsideProbability ?? (100-probabilityAboveTarget({...r,gdp,esg,totalScore,alpha:+(r.alpha??0),volatility:+(r.volatility??0.15),fx},0))).toFixed(1),
+  };
+}
+
+function clampWeight(value) {
+  return Math.max(0.15, Math.min(0.60, value));
+}
+
+function calculateCountrySpecificWeights(row) {
+  const beta = Math.abs(+(row.beta ?? 0));
+  const volatility = +(row.volatility ?? row.annualized_volatility ?? 0);
+  const policyRisk = +(row.policyScore ?? row.policy_score ?? 0);
+  const macroRisk = +(row.macroScore ?? row.macro_score ?? 0);
+  const governanceScore = +(row.governanceScore ?? row.policy_stability ?? row.stability ?? 50);
+  const inflation = +(row.inflation ?? 0);
+  const debtToGDP = +(row.debt ?? row.debt_to_gdp ?? 0);
+  const fxRisk = +(row.fx ?? row.fx_volatility ?? 0);
+  const gdpGrowth = +(row.gdp ?? row.gdp_growth ?? 0);
+
+  let rawMarket = 1 + beta * 0.30 + volatility * 0.40 + Math.max(0, beta - 1) * 0.20;
+  let rawPolicy = 1 + policyRisk * 0.02 + (100 - governanceScore) * 0.02;
+  let rawMacro = 1 + inflation * 0.05 + debtToGDP * 0.01 + fxRisk * 0.03 + macroRisk * 0.01 - gdpGrowth * 0.03;
+
+  rawMarket = Math.max(0.25, rawMarket);
+  rawPolicy = Math.max(0.25, rawPolicy);
+  rawMacro = Math.max(0.25, rawMacro);
+
+  let totalRaw = rawMarket + rawPolicy + rawMacro;
+  let marketWeight = clampWeight(rawMarket / totalRaw);
+  let policyWeight = clampWeight(rawPolicy / totalRaw);
+  let macroWeight = clampWeight(rawMacro / totalRaw);
+
+  const clampedTotal = marketWeight + policyWeight + macroWeight;
+  marketWeight = marketWeight / clampedTotal;
+  policyWeight = policyWeight / clampedTotal;
+  macroWeight = macroWeight / clampedTotal;
+
+  return { marketWeight, policyWeight, macroWeight };
+}
+
+function calculateCountrySpecificRisk(row) {
+  const weights = calculateCountrySpecificWeights(row);
+  const countrySpecificRisk =
+    weights.marketWeight * +(row.marketScore ?? row.market_score ?? 0) +
+    weights.policyWeight * +(row.policyScore ?? row.policy_score ?? 0) +
+    weights.macroWeight * +(row.macroScore ?? row.macro_score ?? 0);
+
+  return {
+    score: +countrySpecificRisk.toFixed(2),
+    marketWeight: +weights.marketWeight.toFixed(4),
+    policyWeight: +weights.policyWeight.toFixed(4),
+    macroWeight: +weights.macroWeight.toFixed(4),
+  };
+}
+
+function mainRiskDriver(row) {
+  const items = [
+    ["Market Risk", row.marketWeight * row.marketScore],
+    ["Policy Risk", row.policyWeight * row.policyScore],
+    ["Macro Risk", row.macroWeight * row.macroScore],
+  ];
+  return items.sort((a,b)=>b[1]-a[1])[0][0];
+}
+
+function enrichCountrySpecificRisk(row) {
+  const model = calculateCountrySpecificRisk(row);
+  const fixedRiskScore = +(row.totalScore ?? row.total_score ?? 0);
+  const enriched = {
+    ...row,
+    fixedRiskScore,
+    countrySpecificRiskScore: model.score,
+    marketWeight: model.marketWeight,
+    policyWeight: model.policyWeight,
+    macroWeight: model.macroWeight,
+  };
+  enriched.mainRiskDriver = mainRiskDriver(enriched);
+  enriched.totalScore = enriched.countrySpecificRiskScore;
+  enriched.riskLabel = label(enriched.countrySpecificRiskScore);
+  enriched.riskDifference = +(enriched.countrySpecificRiskScore - fixedRiskScore).toFixed(2);
+  return enriched;
+}
+
+function formatWeight(weight) {
+  return `${(weight * 100).toFixed(1)}%`;
+}
+
+function countryWeightInterpretation(row) {
+  const weights = [
+    ["Market Risk", row.marketWeight],
+    ["Policy Risk", row.policyWeight],
+    ["Macro Risk", row.macroWeight],
+  ].sort((a,b)=>b[1]-a[1]);
+  const top = weights[0][0];
+  const diffText = `The resulting score is ${row.countrySpecificRiskScore.toFixed(2)} after applying country-specific weights.`;
+
+  if (top === "Policy Risk") {
+    return `This country receives a higher Policy Risk weight because its policy risk and governance-related uncertainty are relatively high. ${diffText}`;
+  }
+  if (top === "Macro Risk") {
+    return `This country receives a higher Macro Risk weight because inflation, debt burden, FX risk, or macro risk conditions are relatively elevated. ${diffText}`;
+  }
+  return `This country receives a higher Market Risk weight because market beta and volatility are relatively high. ${diffText}`;
+}
+
+// 합성 데이터 생성
+const syntheticResults = countries.flatMap(c => energies.map(e => {
+  const r = analyze(c,e);
+  r.ai = explain(c,e,r);
+  return r;
+}));
+
+// 실제 데이터 존재 시 우선 적용, 없으면 합성 데이터
+const useReal = Array.isArray(window.REAL_RESULTS) && window.REAL_RESULTS.length > 0;
+const results = useReal
+  ? window.REAL_RESULTS.map(r => { const n=normalizeRow(r); n.ai=n.ai??n.llm_interpretation??""; return enrichCountrySpecificRisk(n); })
+  : syntheticResults.map(enrichCountrySpecificRisk);
+
+const rlRecommendations = Array.isArray(window.RL_RECOMMENDATIONS) ? window.RL_RECOMMENDATIONS : [];
+
+/* ────────────────────────────────────────────────
+   드롭다운 초기화
+──────────────────────────────────────────────── */
+const countrySelect = document.getElementById("country");
+const energySelect  = document.getElementById("energy");
+const regionSelect  = document.getElementById("region");
+
+[...new Set(results.map(r=>r.country))].sort().forEach(c=>countrySelect.add(new Option(c,c)));
+[...new Set(results.map(r=>r.energy))].sort().forEach(e=>energySelect.add(new Option(e,e)));
+["All",...new Set(results.map(r=>r.region))].forEach(r=>regionSelect.add(new Option(r,r)));
+countrySelect.value = "Vietnam";
+energySelect.value  = "Solar PV";
+
+/* ────────────────────────────────────────────────
+   렌더 함수
+──────────────────────────────────────────────── */
+function selected() {
+  return results.find(r=>r.country===countrySelect.value && r.energy===energySelect.value);
+}
+
+function renderBars(r) {
+  const rows=[["Market",r.marketScore,"market"],["Policy",r.policyScore,"policy"],["Macro",r.macroScore,"macro"],["Total",r.totalScore,"total"]];
+  document.getElementById("bars").innerHTML=rows.map(([n,s,c])=>`
+    <div class="bar-row">
+      <strong>${n}</strong>
+      <div class="bar-track"><div class="bar ${c}" style="width:${s}%"></div></div>
+      <span>${s}</span>
+    </div>`).join("");
+}
+
+function renderCountrySpecificWeights(r) {
+  document.getElementById("marketWeight").textContent = formatWeight(r.marketWeight);
+  document.getElementById("policyWeight").textContent = formatWeight(r.policyWeight);
+  document.getElementById("macroWeight").textContent = formatWeight(r.macroWeight);
+  document.getElementById("marketWeightBar").style.width = formatWeight(r.marketWeight);
+  document.getElementById("policyWeightBar").style.width = formatWeight(r.policyWeight);
+  document.getElementById("macroWeightBar").style.width = formatWeight(r.macroWeight);
+  document.getElementById("weightInterpretation").textContent =
+    `${countryWeightInterpretation(r)}
+
+Country-specific Learning-based Risk Score: ${r.countrySpecificRiskScore.toFixed(2)}
+Main Risk Driver: ${r.mainRiskDriver}`;
+}
+
+function renderMacro(r) {
+  document.getElementById("macro").innerHTML=`
+    <div class="bar-row"><strong>GDP</strong><div class="bar-track"><div class="bar macro" style="width:${clamp(r.gdp*10+30)}%"></div></div><span>${r.gdp}%</span></div>
+    <div class="bar-row"><strong>Inflation</strong><div class="bar-track"><div class="bar policy" style="width:${clamp(r.inflation*2)}%"></div></div><span>${r.inflation}%</span></div>
+    <div class="bar-row"><strong>Debt/GDP</strong><div class="bar-track"><div class="bar market" style="width:${clamp(r.debt/2.5)}%"></div></div><span>${r.debt}%</span></div>
+    <div class="bar-row"><strong>FX Vol.</strong><div class="bar-track"><div class="bar total" style="width:${clamp(r.fx*3)}%"></div></div><span>${r.fx}%</span></div>`;
+}
+
+function renderProbability(r) {
+  const prob = clamp(r.prob8);
+  // 게이지 바늘: 0%→-90deg, 100%→+90deg
+  const angle = -90 + prob * 1.8;
+  document.getElementById("opinionNeedle").style.transform = `rotate(${angle}deg)`;
+  document.getElementById("opinionLabel").textContent  = `${r.prob8}%`;
+
+  // 확률 메트릭
+  document.getElementById("probPositive").textContent  = `${r.probPositive}%`;
+  document.getElementById("prob5disp").textContent     = `${r.prob5}%`;
+  document.getElementById("prob8disp").textContent     = `${r.prob8}%`;
+  document.getElementById("prob8disp2").textContent    = `${r.prob8}%`;
+  document.getElementById("downsideDisp").textContent  = `${r.downsideProbability}%`;
+
+  // 확률 배지 클래스
+  let badgeClass="prob-low";
+  if(r.prob8>=70) badgeClass="prob-high";
+  else if(r.prob8>=55) badgeClass="prob-mid";
+  else if(r.prob8>=40) badgeClass="prob-low";
+  else badgeClass="prob-vlow";
+
+  let tone="";
+  if(r.prob8>=70) tone="목표수익률(8%) 달성 가능성이 상대적으로 높습니다.";
+  else if(r.prob8>=55) tone="목표수익률 달성 가능성이 보통 이상이지만 리스크 관리가 필요합니다.";
+  else if(r.prob8>=40) tone="목표수익률 달성 여부가 불확실하므로 관망 또는 분할 접근이 적절합니다.";
+  else tone="목표수익률 달성 가능성이 낮아 보수적인 접근이 필요합니다.";
+
+  const mainRisk=[["시장",r.marketScore],["정책",r.policyScore],["거시경제",r.macroScore]].sort((a,b)=>b[1]-a[1])[0][0];
+
+  document.getElementById("opinionText").innerHTML =
+    `<div class="opinion-top"><span class="opinion-badge ${badgeClass}">확률 추정</span><strong>${r.country} · ${r.energy}</strong></div>` +
+    `추정 결과, ${r.country}의 ${r.energy} 투자가 향후 1년 내 8% 이상의 연간 수익률을 달성할 확률은 약 ${r.prob8}%입니다.\n` +
+    `양(+)의 수익률을 기록할 확률은 ${r.probPositive}%이며, 손실 가능성은 ${r.downsideProbability}%로 추정됩니다.\n\n` +
+    `${tone} 현재 가장 중요한 하방 요인은 ${mainRisk} 리스크입니다.`;
+}
+
+function renderTable() {
+  const q   = document.getElementById("search").value.toLowerCase();
+  const reg = regionSelect.value;
+  const filtered = results
+    .filter(r=>(reg==="All"||r.region===reg)&&(`${r.country} ${r.energy}`.toLowerCase().includes(q)))
+    .sort((a,b)=>b.totalScore-a.totalScore)
+    .slice(0,160);
+  document.getElementById("rows").innerHTML = filtered.map(r=>`
+    <tr>
+      <td>${r.country}</td>
+      <td>${r.region}</td>
+      <td>${r.energy}</td>
+      <td><strong>${r.totalScore}</strong></td>
+      <td><span class="badge ${labelClass(r.totalScore)}">${r.riskLabel}</span></td>
+      <td>${r.marketScore}</td>
+      <td>${r.policyScore}</td>
+      <td>${r.macroScore}</td>
+      <td>${r.prob8}%</td>
+    </tr>`).join("");
+}
+
+function renderComparisonTable() {
+  const q   = document.getElementById("search").value.toLowerCase();
+  const reg = regionSelect.value;
+  const filtered = results
+    .filter(r=>(reg==="All"||r.region===reg)&&(`${r.country} ${r.energy}`.toLowerCase().includes(q)))
+    .sort((a,b)=>Math.abs(b.riskDifference)-Math.abs(a.riskDifference))
+    .slice(0,160);
+  document.getElementById("comparisonRows").innerHTML = filtered.map(r=>`
+    <tr>
+      <td>${r.country}</td>
+      <td>${r.region}</td>
+      <td>${r.energy}</td>
+      <td><strong>${r.countrySpecificRiskScore.toFixed(2)}</strong></td>
+      <td>${formatWeight(r.marketWeight)}</td>
+      <td>${formatWeight(r.policyWeight)}</td>
+      <td>${formatWeight(r.macroWeight)}</td>
+      <td>${r.mainRiskDriver}</td>
+      <td>${r.riskLabel}</td>
+    </tr>`).join("");
+}
+
+function findRLRecommendation(r) {
+  return rlRecommendations.find(item => item.country === r.country && item.energy === r.energy);
+}
+
+function renderRLRecommendation(r) {
+  const rec = findRLRecommendation(r);
+  if (!rec) {
+    document.getElementById("rlActionLabel").textContent = "-";
+    document.getElementById("rlPosition").textContent = "-";
+    document.getElementById("rlRiskScore").textContent = "-";
+    document.getElementById("rlProb8").textContent = "-";
+    document.getElementById("rlExplanation").textContent = "RL recommendation file is not loaded yet. Run python -m src.learning.export_rl_results to generate dashboard/rl_recommendations.js.";
+    return;
+  }
+  document.getElementById("rlActionLabel").textContent = rec.rlActionLabel;
+  document.getElementById("rlPosition").textContent = `${(Number(rec.rlPosition) * 100).toFixed(0)}%`;
+  document.getElementById("rlRiskScore").textContent = Number(rec.countrySpecificRiskScore).toFixed(2);
+  document.getElementById("rlProb8").textContent = `${Number(rec.prob8).toFixed(1)}%`;
+  document.getElementById("rlExplanation").textContent =
+    `The RL agent observes the selected country-energy state and chooses an allocation intensity.
+
+State includes Market/Policy/Macro Risk, country-specific weights, beta, ETF volatility, GDP growth, inflation, debt, FX volatility, political stability, expected return, and probability estimates.
+
+For ${rec.country} · ${rec.energy}, the trained Q-learning policy recommends: ${rec.rlActionLabel}.`;
+}
+
+function render() {
+  const r = selected();
+  if(!r) return;
+  document.getElementById("totalScore").textContent = r.totalScore;
+  document.getElementById("riskBadge").innerHTML    = `<span class="badge ${labelClass(r.totalScore)}">${r.riskLabel}</span>`;
+  document.getElementById("beta").textContent       = r.beta;
+  document.getElementById("prob8disp").textContent  = `${r.prob8}%`;
+  document.getElementById("etf").textContent        = r.etf;
+  document.getElementById("explain").textContent    = r.ai || r.llm_interpretation || "LLM 해석 결과가 없습니다. build_real_dashboard_data.py 실행 시 OPENAI_API_KEY를 설정해야 실제 LLM 해석이 생성됩니다.";
+  document.getElementById("keywords").innerHTML     = (r.keywords||"").split(", ").filter(Boolean).map(k=>`<span class="pill">${k}</span>`).join("");
+  renderBars(r);
+  renderCountrySpecificWeights(r);
+  renderMacro(r);
+  renderProbability(r);
+  renderRLRecommendation(r);
+  renderTable();
+  renderComparisonTable();
+}
+
+/* ────────────────────────────────────────────────
+   데이터 소스 상태 표시 (예은님)
+──────────────────────────────────────────────── */
+const noteEl  = document.getElementById("dataSourceNote");
+const noteEl2 = document.getElementById("dataSourceNote2");
+if (useReal) {
+  const meta = window.REAL_DATA_METADATA || {};
+  const msg  = `실제 API 데이터 적용 중 — ${meta.generated_at_utc||"생성 시각 미상"}, ${meta.row_count||results.length}개 조합`;
+  noteEl.textContent  = msg;
+  noteEl2.textContent = msg;
+} else {
+  noteEl.textContent  = "내장 예시 데이터 사용 중. 실제 데이터 적용 시 real_dashboard_data.js 파일을 제공하세요.";
+  noteEl2.textContent = "현재 합성 데이터 기반. Python 파이프라인 실행 후 real_dashboard_data.js를 동일 폴더에 위치시키면 실제 데이터로 자동 전환됩니다.";
+}
+
+/* ────────────────────────────────────────────────
+   이벤트 바인딩
+──────────────────────────────────────────────── */
+[countrySelect, energySelect, regionSelect, document.getElementById("search")]
+  .forEach(el => el.addEventListener("input", render));
+
+render();
+</script>
+</body>
+</html>
