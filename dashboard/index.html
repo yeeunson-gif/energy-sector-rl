@@ -297,19 +297,19 @@
 
       <div class="source-grid">
         <div class="source-card">
-          <strong>Market Risk (40%)</strong>
+          <strong>Market Risk (<span id="sourceMarketWeight">-</span>)</strong>
           <b>실제 목표:</b> yfinance로 ETF·SPY 월별 수익률을 수집해 CAPM 회귀로 β·α 산출.<br>
           <b>현재 HTML:</b> wave(seed, month) 기반 가상 수익률 proxy — CAPM 계산 구조만 시연.<br>
           <b>ETF 매핑:</b> TAN(태양), FAN(풍력), ICLN(재생), XLE(화석), URA(핵), LIT(배터리) 등
         </div>
         <div class="source-card">
-          <strong>Policy Risk (30%)</strong>
+          <strong>Policy Risk (<span id="sourcePolicyWeight">-</span>)</strong>
           <b>실제 목표:</b> GDELT 2.1 DOC API에서 regulation, tax, ban, subsidy, tariff, permit 등 키워드 집계.<br>
           <b>현재 데이터:</b> GDELT 기반 정책/뉴스 키워드와 에너지 유형별 정책 노출도 반영.<br>
           <b>키워드 가중치:</b> nationalization(1.2) &gt; ban/sanction(1.15) &gt; regulation(1.0) 순
         </div>
         <div class="source-card">
-          <strong>Macro Risk (30%)</strong>
+          <strong>Macro Risk (<span id="sourceMacroWeight">-</span>)</strong>
           <b>실제 목표:</b> World Bank API — NY.GDP.MKTP.KD.ZG, FP.CPI.TOTL.ZG, GC.DOD.TOTL.GD.ZS.<br>
           <b>현재 HTML:</b> 40개국 예시 거시지표 하드코딩 (IMF WEO 2024 기준 추정치).<br>
           <b>정규화:</b> GDP는 반전 처리(낮을수록 리스크↑), 인플레·부채는 정방향
@@ -318,7 +318,7 @@
 
       <div class="formula-box">
         <strong>통합 리스크 공식</strong>
-        <code>Total Risk  =  0.40 × Market Risk  +  0.30 × Policy Risk  +  0.30 × Macro Risk
+        <code><span id="selectedRiskFormula">가중치 불러오는 중</span>
 
 확률 추정 (국가별 데이터 기반 proxy)
 E[R]과 σ는 GDP 성장률, 인플레이션, 부채비율, 환율 변동성, WGI 안정성, ETF 변동성을 이용해 행별로 추정
@@ -903,6 +903,20 @@ function renderBars(r) {
 }
 
 function renderCountrySpecificWeights(r) {
+    document.getElementById("sourceMarketWeight").textContent =
+    formatWeight(r.marketWeight);
+
+  document.getElementById("sourcePolicyWeight").textContent =
+    formatWeight(r.policyWeight);
+
+  document.getElementById("sourceMacroWeight").textContent =
+    formatWeight(r.macroWeight);
+
+  document.getElementById("selectedRiskFormula").textContent =
+    `${r.country} · ${r.energy}
+Total Risk = ${r.marketWeight.toFixed(4)} × Market Risk
+           + ${r.policyWeight.toFixed(4)} × Policy Risk
+           + ${r.macroWeight.toFixed(4)} × Macro Risk`;
   document.getElementById("marketWeight").textContent = formatWeight(r.marketWeight);
   document.getElementById("policyWeight").textContent = formatWeight(r.policyWeight);
   document.getElementById("macroWeight").textContent = formatWeight(r.macroWeight);
